@@ -152,8 +152,6 @@ const NewHome = () => {
   return (
     <div className="grid grid-cols-2">
       <div>
-        {/* Move the UploadedImage component here */}
-        {/* Ternary for image src to upload an image and select how mayn colors  */}
         {imageSrc == null ? (
           <h2 className="text-2xl">upload image to generate a pallette</h2>
         ) : (
