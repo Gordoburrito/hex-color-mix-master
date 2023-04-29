@@ -30,7 +30,7 @@ const ColorMix: React.FC<ColorMixProps> = ({ colorMixResult }) => {
                     (color) => color.Quantity
                   );
                   const parts = quantities;
-                  return Object && Object.keys(colorMixResult[sumHex]).map(
+                  return colorMixResult[sumHex] && Object.keys(colorMixResult[sumHex]).map(
                     (colorName, idx) => {
                       const { hex, Quantity } = colorMixResult[sumHex][colorName];
                       return (
