@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* custom.css */
+.rainbow-circle {
+  background-image: conic-gradient(
+    #B22222,    /* Darker red */
+    #CC5500,    /* Darker orange */
+    #AA6600,    /* Darker yellow */
+    #228B22,    /* Darker green */
+    #1C1CA1,    /* Darker blue */
+    #4B0082,    /* Darker indigo */
+    #9400D3,    /* Darker violet */
+    #B22222     /* Darker red */
+  );
+}
+
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+}
