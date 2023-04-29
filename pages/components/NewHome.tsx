@@ -123,6 +123,7 @@ const NewHome = () => {
     setEyeDropActive(false);
   };
 
+  
   const Button = ({ onClick }) => (
     <button
       className="w-8 h-8 rainbow-circle rounded flex border-2 border-white items-center justify-center"

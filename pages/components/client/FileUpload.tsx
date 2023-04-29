@@ -1,9 +1,20 @@
-// src/components/FileUpload.tsx
 import { ChangeEvent } from "react";
 
-const FileUpload = ({ onUpload }) => {
+type OnUploadType = (file: File) => void;
+
+interface FileUploadProps {
+  onUpload: OnUploadType;
+}
+
+const FileUpload = ({ onUpload }: FileUploadProps) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      onUpload(e.target.files[0]);
+    }
+  };
+
   return (
-    <input type="file" onChange={(e) => onUpload(e.target.files[0])} />
+    <input type="file" onChange={handleFileChange} />
   );
 };
 

@@ -1,10 +1,13 @@
-// src/components/ColorPicker.tsx
-import { ChromePicker, ColorResult } from "react-color";
+interface ColorPickerProps {
+  pickerColor: string;
+  // handleColorChange: (color: ColorResult) => void;
+  addPickerColor: () => void;
+}
 
-const ColorPicker = ({ pickerColor, handleColorChange, addPickerColor }) => {
+const ColorPicker = ({ pickerColor, addPickerColor }: ColorPickerProps) => {
   return (
     <>
-      <ChromePicker color={pickerColor} onChange={handleColorChange} />
+      {/* <ChromePicker color={pickerColor} onChange={handleColorChange} /> */}
       <button onClick={addPickerColor}>Add color</button>
     </>
   );

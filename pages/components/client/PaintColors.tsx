@@ -1,7 +1,11 @@
-// src/components/PaintColors.tsx
 import { ChangeEvent } from "react";
 
-const PaintColors = ({ paintColors, handlePaintColorsChange }) => {
+interface PaintColorsProps {
+  paintColors: string;
+  handlePaintColorsChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
+}
+
+const PaintColors = ({ paintColors, handlePaintColorsChange }: PaintColorsProps) => {
   return (
     <div>
       <label htmlFor="paint-colors">Paint Colors:</label>

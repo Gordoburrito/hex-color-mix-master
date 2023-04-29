@@ -8,6 +8,7 @@ const UploadedImage: React.FC<UploadedImageProps> = ({ imageSrc, ...props }) => 
   return (
     <div className="flex justify-center items-center overflow-hidden">
       {imageSrc && (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           className="max-w-full max-h-full max-h-[80vh] object-contain"
           {...props}

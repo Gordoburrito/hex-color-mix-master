@@ -81,6 +81,7 @@ interface ColorMixResult {
 
 interface ColorMixProps {
   colorMixResult: ColorMixResult;
+  isLoading?: boolean;
 }
 
 const ColorMix: React.FC<ColorMixProps> = ({colorMixResult, isLoading}) => {
