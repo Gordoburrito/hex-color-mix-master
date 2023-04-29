@@ -12,22 +12,9 @@ interface ColorMixResult {
 
 interface ColorMixProps {
   colorMixResult: ColorMixResult;
-  isLoading?: boolean;
 }
 
-const ColorMix: React.FC<ColorMixProps> = ({ colorMixResult, isLoading }) => {
-  if (!colorMixResult) {
-    return (
-      <div className="flex flex-col gap-4">
-        <div className="block">
-          🌀 ...LOADING
-          <br></br>...Takes a while
-          <br></br>...trust{" "}
-        </div>
-      </div>
-    );
-  }
-
+const ColorMix: React.FC<ColorMixProps> = ({ colorMixResult }) => {
     return (
       <div className="flex flex-col gap-4">
         {Object.keys(colorMixResult).map((sumHex, index) => (

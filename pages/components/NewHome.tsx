@@ -170,8 +170,8 @@ const NewHome = () => {
       </div>
       <div className="flex">
         <div>
+          {isLoading && <div>Loading...<br></br>Takes awhile...<br></br>Trust...</div>}
           <ColorMixResult
-            isLoading={isLoading}
             colorMixResult={colorMixResult}
           />
           <div>
