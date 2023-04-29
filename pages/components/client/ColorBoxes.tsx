@@ -9,7 +9,7 @@ interface ColorBoxesProps {
 const ColorBoxes: React.FC<ColorBoxesProps> = ({ colors, onRemoveColor }) => {
   return (
     <div className="flex gap-1">
-      {colors.map((color, index) => (
+      {colors && colors.map((color, index) => (
         <div
           className="flex w-8 h-8 rounded border-2 border-white relative justify-center items-center group"
           key={index}

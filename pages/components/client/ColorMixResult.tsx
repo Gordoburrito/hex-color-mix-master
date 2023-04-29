@@ -101,7 +101,7 @@ const ColorMix: React.FC<ColorMixProps> = ({colorMixResult, isLoading}) => {
                   (color) => color.Quantity
                 );
                 const parts = quantities;
-                return Object.keys(colorMixResult[sumHex]).map(
+                return Object && Object.keys(colorMixResult[sumHex]).map(
                   (colorName, idx) => {
                     const { hex, Quantity } = colorMixResult[sumHex][colorName];
                     return (
