@@ -44,6 +44,7 @@ export default async function (
       messages: [{role: "assistant", content: prompt}]
     });
     const jsonResponse = response && response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].message ? JSON.parse(response.data.choices[0].message.content.trim()) : null;
+
     res.status(200).json(jsonResponse);
   } catch (error) {
     // Consider adjusting the error handling logic for your use case
