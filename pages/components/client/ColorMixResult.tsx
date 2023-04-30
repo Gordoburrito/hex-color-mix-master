@@ -15,7 +15,11 @@ interface ColorMixProps {
 }
 
 const ColorMix: React.FC<ColorMixProps> = ({ colorMixResult }) => {
-    return (
+  if (!colorMixResult) {
+    return <div>No color mix data available</div>;
+  }
+    
+  return (
       <div className="flex flex-col gap-4">
         {Object.keys(colorMixResult).map((sumHex, index) => (
           <div key={index} className="w-full">
