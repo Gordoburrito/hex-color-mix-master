@@ -69,6 +69,14 @@ const NewHome = () => {
     // Takes (Yellow Ochre, Pthalo Blue, and  hexValues  [#7f7f7f, #7f7f7f, #7f7f7f])
     // Returns color mixes.
     setIsLoading(true);
+  
+    const controller = new AbortController(); // Create an AbortController instance
+    const signal = controller.signal; // Get the signal from the AbortController
+  
+    // Set the custom timeout (in milliseconds)
+    const timeout = 60000; // 60 seconds
+    setTimeout(() => controller.abort(), timeout);
+  
     try {
       const response = await fetch("/api/mixColors", {
         method: "POST",
@@ -79,8 +87,9 @@ const NewHome = () => {
           paintColors: paintColors,
           hexValues: colors,
         }),
+        signal, // Pass the signal to the fetch request
       });
-
+  
       const data = await response.json();
       console.log("data", data);
       if (response.status !== 200) {
@@ -93,13 +102,19 @@ const NewHome = () => {
       setColorMixResult(data);
       setIsLoading(false);
     } catch (error) {
-      // Consider implementing your own error handling logic here
-      setIsLoading(false);
-      console.error(error);
-      alert(error.message);
+      if (error.name === "AbortError") {
+        // Handle fetch timeout error
+        console.error("Fetch request timed out");
+        alert("Request timed out. Please try again.");
+      } else {
+        // Consider implementing your own error handling logic here
+        setIsLoading(false);
+        console.error(error);
+        alert(error.message);
+      }
     }
   };
-
+  
   // add api call?
 
   // client
