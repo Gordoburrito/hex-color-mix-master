@@ -10,6 +10,7 @@ const PaintColors = ({ paintColors, handlePaintColorsChange }: PaintColorsProps)
     <div>
       <label htmlFor="paint-colors">Paint Colors:</label>
       <textarea
+        className=" bg-transparent"
         id="paint-colors"
         value={paintColors}
         onChange={handlePaintColorsChange}
