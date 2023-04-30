@@ -74,7 +74,7 @@ const NewHome = () => {
     const signal = controller.signal; // Get the signal from the AbortController
   
     // Set the custom timeout (in milliseconds)
-    const timeout = 60000; // 60 seconds
+    const timeout = 30000; // 60 seconds
     setTimeout(() => controller.abort(), timeout);
   
     try {
@@ -93,10 +93,16 @@ const NewHome = () => {
       const data = await response.json();
       console.log("data", data);
       if (response.status !== 200) {
-        throw (
-          data.error ||
-          new Error(`Request failed with status ${response.status}`)
-        );
+        if (response.status === 504) {
+          throw new Error(
+            "The fastest growing application in history is at capacity. Please try again."
+          );
+        } else {
+          throw (
+            data.error ||
+            new Error(`Request failed with status ${response.status}`)
+          );
+        }
       }
       console.log("colorMixResult", data);
       setColorMixResult(data);

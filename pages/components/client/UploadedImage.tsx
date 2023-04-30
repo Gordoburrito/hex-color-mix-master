@@ -10,7 +10,7 @@ const UploadedImage: React.FC<UploadedImageProps> = ({ imageSrc, ...props }) => 
       {imageSrc && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          className="max-w-full max-h-full max-h-[80vh] object-contain"
+          className="max-w-full max-h-[80vh] object-contain"
           {...props}
           src={imageSrc}
           alt="Uploaded preview"
