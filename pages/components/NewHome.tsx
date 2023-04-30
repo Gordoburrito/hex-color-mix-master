@@ -191,7 +191,7 @@ const NewHome = () => {
       </div>
       <div className="flex">
         <div>
-          {isLoading && <div>🌀 Loading...<br></br>Takes awhile...<br></br>Trust...</div>}
+          {isLoading && <div>🌀 consulting a repository of human knowledge... <br></br>max 10 seconds will break if over 10 seconds</div>}
           <ColorMixResult
             colorMixResult={colorMixResult}
           />
