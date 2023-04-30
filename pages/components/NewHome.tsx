@@ -78,7 +78,7 @@ const NewHome = () => {
     setTimeout(() => controller.abort(), timeout);
   
     try {
-      const response = await fetch("/api/mixColors", {
+      const response = await fetch("/api/mixColorsDavinci", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

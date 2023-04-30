@@ -34,16 +34,18 @@ export default async function (
 
   try {
     const prompt = generatePrompt(paintColors, hexValues);
-    const response = await openai.createChatCompletion({
-      model: "gpt-4",
+    const response = await openai.createCompletion({
+      model: "text-davinci-002",
+      prompt: prompt,
       temperature: 0,
       max_tokens: 2048,
-      frequency_penalty: 0,
-      presence_penalty: 0,
+      n: 1,
+      stop: null,
       top_p: 1,
-      messages: [{role: "assistant", content: prompt}]
+      presence_penalty: 0,
+      frequency_penalty: 0
     });
-    const jsonResponse = response && response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].message ? JSON.parse(response.data.choices[0].message.content.trim()) : null;
+    const jsonResponse = response && response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].text ? JSON.parse(response.data.choices[0].text.trim()) : null;
 
     res.status(200).json(jsonResponse);
   } catch (error: any) {
@@ -84,12 +86,12 @@ function generatePrompt(paintColors: string, hexValues: string[]): string {
   {
     "HEX_CODE": {
       "Paint Color 1": {
-        'hex': 'closest hex value',
-        'Quantity' : quantity,
+        "hex": "closest hex value",
+        "Quantity" : quantity
       },
       "Paint Color 2": {
-        'hex': 'closest hex value',
-        'Quantity' : quantity,
+        "hex": "closest hex value",
+        "Quantity" : quantity
       },
       ...
     },

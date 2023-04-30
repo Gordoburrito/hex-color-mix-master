@@ -18,7 +18,7 @@ const ColorMix: React.FC<ColorMixProps> = ({ colorMixResult }) => {
   if (!colorMixResult) {
     return <div>No color mix data available</div>;
   }
-    
+
   return (
       <div className="flex flex-col gap-4">
         {Object.keys(colorMixResult).map((sumHex, index) => (
@@ -46,7 +46,7 @@ const ColorMix: React.FC<ColorMixProps> = ({ colorMixResult }) => {
                                   <div
                                     key={partIndex}
                                     className="w-8 h-8 rounded-full -mr-2 border-2 border-white "
-                                    style={{ backgroundColor: hex }}
+                                    style={{ backgroundColor: "#"+hex }}
                                   ></div>
                                 )
                               )}
