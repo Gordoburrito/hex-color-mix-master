@@ -7,7 +7,6 @@ import UploadedImage from "./client/UploadedImage";
 import ColorBoxes from "./client/ColorBoxes";
 import { useState, useCallback, useRef } from "react";
 import { extractColors } from "../../utils";
-import { ColorResult } from "react-color";
 import { EyeDropper } from "react-eyedrop";
 
 interface PaintColor {
@@ -156,7 +155,7 @@ const NewHome = () => {
     setPaintColors(colors);
   };
 
-  const handleEyeDropSelect = (color: ColorResult) => {
+  const handleEyeDropSelect = (color: { rgb: string; hex: string }) => {
     // For EyeDropper, we'll add at a default position since we don't have coordinates
     setColors((prevColors) => [...prevColors, { 
       hex: color.hex, 
@@ -209,14 +208,20 @@ const NewHome = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
     
-    // Only redraw if canvas size changed
+    // Always ensure canvas has correct size and image is drawn
     if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
-      ctx.drawImage(img, 0, 0);
     }
     
-    const imageData = ctx.getImageData(pixelX, pixelY, 1, 1);
+    // Always draw the image to ensure canvas has current image data
+    ctx.drawImage(img, 0, 0);
+    
+    // Ensure coordinates are within bounds
+    const clampedX = Math.max(0, Math.min(pixelX, img.naturalWidth - 1));
+    const clampedY = Math.max(0, Math.min(pixelY, img.naturalHeight - 1));
+    
+    const imageData = ctx.getImageData(clampedX, clampedY, 1, 1);
     const r = imageData.data[0];
     const g = imageData.data[1];
     const b = imageData.data[2];
