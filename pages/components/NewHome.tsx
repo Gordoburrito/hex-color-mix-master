@@ -133,6 +133,18 @@ const NewHome = () => {
       }
       setColorMixResult(data);
       setIsLoading(false);
+      
+      // Ensure panel is visible and scroll to it
+      if (!isPanelVisible) {
+        setIsPanelVisible(true);
+      }
+      // Scroll to bottom to show results
+      setTimeout(() => {
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
     } catch (error) {
       if (error.name === "AbortError") {
         // Handle fetch timeout error
@@ -143,6 +155,11 @@ const NewHome = () => {
         setIsLoading(false);
         console.error(error);
         alert(error.message);
+        
+        // Ensure panel is visible for any error states
+        if (!isPanelVisible) {
+          setIsPanelVisible(true);
+        }
       }
     }
   };
@@ -296,7 +313,7 @@ const NewHome = () => {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen pb-96">
       {imageSrc == null ? (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
           <h2 className="text-2xl mb-8 text-center">upload image to generate a palette or add colors manually</h2>
@@ -332,51 +349,48 @@ const NewHome = () => {
               <FileUpload onUpload={onUpload} />
             </div>
             
-            <div className="bg-white bg-opacity-90 rounded-lg p-4">
+            {/* <div className="bg-white bg-opacity-90 rounded-lg p-4">
               <EyeDropper customComponent={Button} onChange={handleEyeDropSelect} />
-            </div>
+            </div> */}
           </div>
 
-          {/* Toggle button for side panel */}
-          <button
-            onClick={() => setIsPanelVisible(!isPanelVisible)}
-            className="fixed right-4 top-1/2 transform -translate-y-1/2 z-50 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-l-lg p-2 shadow-lg transition-all duration-200"
-            style={{ right: isPanelVisible ? '324px' : '4px' }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className={`w-6 h-6 transition-transform duration-200 ${isPanelVisible ? 'rotate-0' : 'rotate-180'}`}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 19.5L8.25 12l7.5-7.5"
-              />
-            </svg>
-          </button>
-
-          {/* Side panel for results and controls */}
-          <div className={`fixed right-4 top-20 bottom-4 w-80 bg-white bg-opacity-95 rounded-lg p-4 overflow-y-auto z-40 transition-transform duration-300 ${isPanelVisible ? 'translate-x-0' : 'translate-x-full'}`}>
-            {isLoading && (
-              <div className="mb-4 text-center">
-                🌀 consulting a repository of human knowledge...<br/>
-                max 10 seconds will break if over 10 seconds<br/>
-                Try again if it doesnt work
+          {/* Bottom panel for results and controls */}
+          <div className={`fixed bottom-4 left-4 right-4 max-h-[50vh] bg-white bg-opacity-95 rounded-lg overflow-y-auto z-40 transition-transform duration-300 ${isPanelVisible ? 'translate-y-0' : 'translate-y-[calc(100%-60px)]'}`}>
+            {/* Toggle button at top of panel */}
+            <div className="flex justify-center border-b border-gray-200 pb-2 mb-4">
+              <button
+                onClick={() => setIsPanelVisible(!isPanelVisible)}
+                className="bg-gray-100 hover:bg-gray-200 rounded-lg p-2 transition-all duration-200"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className={`w-6 h-6 transition-transform duration-200 ${isPanelVisible ? 'rotate-180' : 'rotate-0'}`}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 15.75l7.5-7.5 7.5 7.5"
+                  />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="px-4 pb-4">
+              {/* Color Mix Button at the top */}
+              <ColorMixButton requestColorMix={requestColorMix} isLoading={isLoading} />
+              
+              <ColorMixResult colorMixResult={colorMixResult} />
+              
+              <div className="mt-4">
+                <PaintColorsList
+                  paintColors={paintColors}
+                  onPaintColorsChange={handlePaintColorsChange}
+                />
               </div>
-            )}
-            
-            <ColorMixResult colorMixResult={colorMixResult} />
-            
-            <div className="mt-4">
-              <PaintColorsList
-                paintColors={paintColors}
-                onPaintColorsChange={handlePaintColorsChange}
-              />
-              <ColorMixButton requestColorMix={requestColorMix} />
             </div>
           </div>
         </>
