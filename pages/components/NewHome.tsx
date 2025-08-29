@@ -134,11 +134,7 @@ const NewHome = () => {
       setColorMixResult(data);
       setIsLoading(false);
       
-      // Ensure panel is visible and scroll to it
-      if (!isPanelVisible) {
-        setIsPanelVisible(true);
-      }
-      // Scroll to bottom to show results
+      // Scroll to results section
       setTimeout(() => {
         window.scrollTo({
           top: document.body.scrollHeight,
@@ -155,11 +151,6 @@ const NewHome = () => {
         setIsLoading(false);
         console.error(error);
         alert(error.message);
-        
-        // Ensure panel is visible for any error states
-        if (!isPanelVisible) {
-          setIsPanelVisible(true);
-        }
       }
     }
   };
@@ -321,46 +312,55 @@ const NewHome = () => {
         </div>
       ) : (
         <>
-          {/* Full-screen image */}
-          <div className="relative">
-            <UploadedImage 
-              imageSrc={imageSrc} 
-              onClick={handleImageClick} 
-              onMouseMove={handleImageMouseMove}
-            />
-            <ColorBoxes colors={colors} onRemoveColor={removeColor} />
-            
-            {/* Color preview circle */}
-            {previewColor && mousePosition && (
-              <div
-                className="fixed pointer-events-none z-50 w-16 h-16 rounded-full border-4 border-white shadow-lg"
-                style={{
-                  backgroundColor: previewColor,
-                  left: mousePosition.x + 20,
-                  top: mousePosition.y - 40,
-                }}
+          <div className="flex flex-col">
+            {/* Image section with overlay controls */}
+            <div className="relative min-h-[60vh] mb-8">
+              <UploadedImage 
+                imageSrc={imageSrc} 
+                onClick={handleImageClick} 
+                onMouseMove={handleImageMouseMove}
               />
-            )}
-          </div>
-
-          {/* Overlay controls */}
-          <div className="fixed top-4 left-4 right-4 z-40 flex justify-between items-start">
-            <div className="bg-white bg-opacity-90 rounded-lg p-4 max-w-xs">
-              <FileUpload onUpload={onUpload} />
+              <ColorBoxes colors={colors} onRemoveColor={removeColor} />
+              
+              {/* Color preview circle */}
+              {previewColor && mousePosition && (
+                <div
+                  className="fixed pointer-events-none z-50 w-16 h-16 rounded-full border-4 border-white shadow-lg"
+                  style={{
+                    backgroundColor: previewColor,
+                    left: mousePosition.x + 20,
+                    top: mousePosition.y - 40,
+                  }}
+                />
+              )}
+              
+              {/* Overlay controls */}
+              <div className="absolute top-4 left-4 right-4 z-40 flex justify-between items-start">
+                <div className="bg-white bg-opacity-90 rounded-lg p-4 max-w-xs">
+                  <FileUpload onUpload={onUpload} />
+                </div>
+              </div>
             </div>
-            
-            {/* <div className="bg-white bg-opacity-90 rounded-lg p-4">
-              <EyeDropper customComponent={Button} onChange={handleEyeDropSelect} />
-            </div> */}
+
+            {/* Main page content below image */}
+            <div className="px-4 pb-8 space-y-6">
+              {/* Color Mix Button */}
+              <div className="flex justify-center">
+                <ColorMixButton requestColorMix={requestColorMix} isLoading={isLoading} />
+              </div>
+              
+              {/* Color Mix Results */}
+              <ColorMixResult colorMixResult={colorMixResult} />
+            </div>
           </div>
 
-          {/* Bottom panel for results and controls */}
-          <div className={`fixed bottom-4 left-4 right-4 max-h-[100vh] bg-white bg-opacity-95 rounded-lg overflow-y-auto z-40 transition-transform duration-300 ${isPanelVisible ? 'translate-y-0' : 'translate-y-[calc(100%-60px)]'}`}>
+          {/* Bottom panel for paint colors only */}
+          <div className={`fixed bottom-4 left-4 right-4 max-h-[60vh] bg-white bg-opacity-95 rounded-lg overflow-y-auto z-40 transition-transform duration-300 ${isPanelVisible ? 'translate-y-0' : 'translate-y-[calc(100%-60px)]'}`}>
             {/* Toggle button at top of panel */}
             <div className="flex justify-center border-b border-gray-200 pb-2 mb-4">
               <button
                 onClick={() => setIsPanelVisible(!isPanelVisible)}
-                className=" w-full h-12"
+                className="w-full h-12"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -380,17 +380,10 @@ const NewHome = () => {
             </div>
             
             <div className="px-4 pb-4">
-              {/* Color Mix Button at the top */}
-              <ColorMixButton requestColorMix={requestColorMix} isLoading={isLoading} />
-              
-              <ColorMixResult colorMixResult={colorMixResult} />
-              
-              <div className="mt-4">
-                <PaintColorsList
-                  paintColors={paintColors}
-                  onPaintColorsChange={handlePaintColorsChange}
-                />
-              </div>
+              <PaintColorsList
+                paintColors={paintColors}
+                onPaintColorsChange={handlePaintColorsChange}
+              />
             </div>
           </div>
         </>

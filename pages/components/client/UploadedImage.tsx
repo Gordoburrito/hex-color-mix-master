@@ -8,7 +8,7 @@ interface UploadedImageProps extends ImgHTMLAttributes<HTMLImageElement> {
 
 const UploadedImage: React.FC<UploadedImageProps> = ({ imageSrc, onClick, onMouseMove, ...props }) => {
   return (
-    <div className="fixed inset-8 overflow-hidden">
+    <div className="w-full h-full overflow-hidden">
       {imageSrc && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
