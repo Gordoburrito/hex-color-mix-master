@@ -42,6 +42,9 @@ const NewHome = () => {
   const [paintColors, setPaintColors] = useState<PaintColor[]>(starterPaintColors);
   const [colorMixResult, setColorMixResult] = useState<any>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [previewColor, setPreviewColor] = useState<string | null>(null);
+  const [mousePosition, setMousePosition] = useState<{x: number, y: number} | null>(null);
+  const [isPanelVisible, setIsPanelVisible] = useState<boolean>(true);
 
   // TODO: add API call for paintColor hex codes.
 
@@ -167,37 +170,88 @@ const NewHome = () => {
     }]);
   };
 
-  const handleImageClick = (event: React.MouseEvent<HTMLImageElement>) => {
-    const img = event.currentTarget as HTMLImageElement;
-    const rect = img.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+  const getPixelColor = (img: HTMLImageElement, x: number, y: number) => {
+    // Calculate actual displayed image dimensions with object-contain
+    const imgAspect = img.naturalWidth / img.naturalHeight;
+    const containerAspect = img.offsetWidth / img.offsetHeight;
     
-    console.log('Click coordinates:', { x, y, rect });
+    let displayedWidth: number, displayedHeight: number, offsetX: number, offsetY: number;
     
-    // Create a canvas to get the pixel color
+    if (imgAspect > containerAspect) {
+      // Image is wider - limited by width
+      displayedWidth = img.offsetWidth;
+      displayedHeight = img.offsetWidth / imgAspect;
+      offsetX = 0;
+      offsetY = (img.offsetHeight - displayedHeight) / 2;
+    } else {
+      // Image is taller - limited by height  
+      displayedWidth = img.offsetHeight * imgAspect;
+      displayedHeight = img.offsetHeight;
+      offsetX = (img.offsetWidth - displayedWidth) / 2;
+      offsetY = 0;
+    }
+    
+    // Adjust mouse coordinates to actual image area
+    const adjustedX = x - offsetX;
+    const adjustedY = y - offsetY;
+    
+    // Check if click is within actual image bounds
+    if (adjustedX < 0 || adjustedY < 0 || adjustedX > displayedWidth || adjustedY > displayedHeight) {
+      return null;
+    }
+    
+    // Scale to natural image coordinates
+    const scaleX = img.naturalWidth / displayedWidth;
+    const scaleY = img.naturalHeight / displayedHeight;
+    const pixelX = Math.floor(adjustedX * scaleX);
+    const pixelY = Math.floor(adjustedY * scaleY);
+    
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) return null;
     
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
     ctx.drawImage(img, 0, 0);
     
-    // Calculate the actual pixel coordinates based on image scaling
-    const scaleX = img.naturalWidth / img.offsetWidth;
-    const scaleY = img.naturalHeight / img.offsetHeight;
-    const pixelX = Math.floor(x * scaleX);
-    const pixelY = Math.floor(y * scaleY);
-    
     const imageData = ctx.getImageData(pixelX, pixelY, 1, 1);
     const r = imageData.data[0];
     const g = imageData.data[1];
     const b = imageData.data[2];
-    const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  };
+
+  const handleImageMouseMove = (event: React.MouseEvent<HTMLImageElement>) => {
+    const img = event.currentTarget as HTMLImageElement;
+    const rect = img.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
     
-    console.log('Adding color:', { hex, x, y });
-    setColors((prevColors) => [...prevColors, { hex, x, y }]);
+    setMousePosition({ x, y });
+    
+    const color = getPixelColor(img, x, y);
+    if (color) {
+      setPreviewColor(color);
+    }
+  };
+
+  const handleImageClick = (event: React.MouseEvent<HTMLImageElement>) => {
+    const img = event.currentTarget as HTMLImageElement;
+    const rect = img.getBoundingClientRect();
+    const relativeX = event.clientX - rect.left;
+    const relativeY = event.clientY - rect.top;
+    
+    // Store absolute viewport coordinates for positioning the color boxes
+    const absoluteX = event.clientX;
+    const absoluteY = event.clientY;
+    
+    console.log('Click coordinates:', { relativeX, relativeY, absoluteX, absoluteY, rect });
+    
+    const hex = getPixelColor(img, relativeX, relativeY);
+    if (!hex) return;
+    
+    console.log('Adding color:', { hex, x: absoluteX, y: absoluteY });
+    setColors((prevColors) => [...prevColors, { hex, x: absoluteX, y: absoluteY }]);
   };
 
   
@@ -228,36 +282,91 @@ const NewHome = () => {
   };
 
   return (
-    <div className="grid grid-cols-2">
-      <div>
-        {imageSrc == null ? (
-          <h2 className="text-2xl">upload image to generate a palette or add colors manually</h2>
-        ) : (
-          <div className="relative inline-block">
-            <UploadedImage imageSrc={imageSrc} onClick={handleImageClick} />
+    <div className="relative min-h-screen">
+      {imageSrc == null ? (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+          <h2 className="text-2xl mb-8 text-center">upload image to generate a palette or add colors manually</h2>
+          <FileUpload onUpload={onUpload} />
+        </div>
+      ) : (
+        <>
+          {/* Full-screen image */}
+          <div className="relative">
+            <UploadedImage 
+              imageSrc={imageSrc} 
+              onClick={handleImageClick} 
+              onMouseMove={handleImageMouseMove}
+            />
             <ColorBoxes colors={colors} onRemoveColor={removeColor} />
-            <div className="absolute top-4 right-4">
+            
+            {/* Color preview circle */}
+            {previewColor && mousePosition && (
+              <div
+                className="fixed pointer-events-none z-50 w-16 h-16 rounded-full border-4 border-white shadow-lg"
+                style={{
+                  backgroundColor: previewColor,
+                  left: mousePosition.x + 20,
+                  top: mousePosition.y - 40,
+                }}
+              />
+            )}
+          </div>
+
+          {/* Overlay controls */}
+          <div className="fixed top-4 left-4 right-4 z-40 flex justify-between items-start">
+            <div className="bg-white bg-opacity-90 rounded-lg p-4 max-w-xs">
+              <FileUpload onUpload={onUpload} />
+            </div>
+            
+            <div className="bg-white bg-opacity-90 rounded-lg p-4">
               <EyeDropper customComponent={Button} onChange={handleEyeDropSelect} />
             </div>
           </div>
-        )}
-        <FileUpload onUpload={onUpload} />
-      </div>
-      <div className="flex">
-        <div>
-          {isLoading && <div>🌀 consulting a repository of human knowledge... <br></br>max 10 seconds will break if over 10 seconds<br></br>Try again if it doesnt work</div>}
-          <ColorMixResult
-            colorMixResult={colorMixResult}
-          />
-          <div>
-            <PaintColorsList
-              paintColors={paintColors}
-              onPaintColorsChange={handlePaintColorsChange}
-            />
-            <ColorMixButton requestColorMix={requestColorMix} />
+
+          {/* Toggle button for side panel */}
+          <button
+            onClick={() => setIsPanelVisible(!isPanelVisible)}
+            className="fixed right-4 top-1/2 transform -translate-y-1/2 z-50 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-l-lg p-2 shadow-lg transition-all duration-200"
+            style={{ right: isPanelVisible ? '324px' : '4px' }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className={`w-6 h-6 transition-transform duration-200 ${isPanelVisible ? 'rotate-0' : 'rotate-180'}`}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 19.5L8.25 12l7.5-7.5"
+              />
+            </svg>
+          </button>
+
+          {/* Side panel for results and controls */}
+          <div className={`fixed right-4 top-20 bottom-4 w-80 bg-white bg-opacity-95 rounded-lg p-4 overflow-y-auto z-40 transition-transform duration-300 ${isPanelVisible ? 'translate-x-0' : 'translate-x-full'}`}>
+            {isLoading && (
+              <div className="mb-4 text-center">
+                🌀 consulting a repository of human knowledge...<br/>
+                max 10 seconds will break if over 10 seconds<br/>
+                Try again if it doesnt work
+              </div>
+            )}
+            
+            <ColorMixResult colorMixResult={colorMixResult} />
+            
+            <div className="mt-4">
+              <PaintColorsList
+                paintColors={paintColors}
+                onPaintColorsChange={handlePaintColorsChange}
+              />
+              <ColorMixButton requestColorMix={requestColorMix} />
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 };
