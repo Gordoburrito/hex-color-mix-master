@@ -15,7 +15,6 @@ export const extractColors = async (imageFile, colorCount = 5) => {
     img.onload = () => {
       try {
         const palette = colorThief.getPalette(img, colorCount);
-        console.log(palette);
         const hexPalette = palette.map(color => rgbToHex(color[0], color[1], color[2]));
 
         resolve(hexPalette);

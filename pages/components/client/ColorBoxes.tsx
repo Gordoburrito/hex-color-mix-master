@@ -13,12 +13,10 @@ interface ColorBoxesProps {
 }
 
 const ColorBoxes: React.FC<ColorBoxesProps> = ({ colors, onRemoveColor }) => {
-  console.log('Rendering ColorBoxes with colors:', colors);
   
   return (
     <>
       {colors && colors.map((color, index) => {
-        console.log(`Color ${index}:`, color);
         return (
           <div
             className="fixed w-8 h-8 rounded border-2 border-white shadow-lg flex justify-center items-center group pointer-events-auto z-10"

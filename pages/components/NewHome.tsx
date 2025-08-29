@@ -1,12 +1,11 @@
 // src/components/ImageUpload.tsx
 import FileUpload from "./client/FileUpload";
-import ColorPicker from "./client/ColorPicker";
 import PaintColorsList from "./client/PaintColorsList";
 import ColorMixButton from "./client/ColorMixButton";
 import ColorMixResult from "./client/ColorMixResult";
 import UploadedImage from "./client/UploadedImage";
 import ColorBoxes from "./client/ColorBoxes";
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 import { extractColors } from "../../utils";
 import { ColorResult } from "react-color";
 import { EyeDropper } from "react-eyedrop";
@@ -44,6 +43,8 @@ const NewHome = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [previewColor, setPreviewColor] = useState<string | null>(null);
   const [mousePosition, setMousePosition] = useState<{x: number, y: number} | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const lastMouseMoveTime = useRef<number>(0);
   const [isPanelVisible, setIsPanelVisible] = useState<boolean>(true);
 
   // TODO: add API call for paintColor hex codes.
@@ -60,11 +61,7 @@ const NewHome = () => {
   // server
   const processImage = async (imageFile: File) => {
     try {
-      const palette = await extractColors(imageFile);
-      console.log('Extracted palette:', palette);
-      // Instead of auto-adding colors, just log them
-      // Users can click on the image to manually select colors at specific coordinates
-      console.log('Colors extracted from image. Click on the image to select colors at specific locations.');
+      await extractColors(imageFile);
     } catch (error) {
       console.error("Failed to extract colors:", error);
     }
@@ -123,7 +120,6 @@ const NewHome = () => {
       });
   
       const data = await response.json();
-      console.log("data", data);
       if (response.status !== 200) {
         if (response.status === 504) {
           throw new Error(
@@ -136,7 +132,6 @@ const NewHome = () => {
           );
         }
       }
-      console.log("colorMixResult", data);
       setColorMixResult(data);
       setIsLoading(false);
     } catch (error) {
@@ -170,7 +165,7 @@ const NewHome = () => {
     }]);
   };
 
-  const getPixelColor = (img: HTMLImageElement, x: number, y: number) => {
+  const getPixelColor = useCallback((img: HTMLImageElement, x: number, y: number) => {
     // Calculate actual displayed image dimensions with object-contain
     const imgAspect = img.naturalWidth / img.naturalHeight;
     const containerAspect = img.offsetWidth / img.offsetHeight;
@@ -206,22 +201,36 @@ const NewHome = () => {
     const pixelX = Math.floor(adjustedX * scaleX);
     const pixelY = Math.floor(adjustedY * scaleY);
     
-    const canvas = document.createElement('canvas');
+    // Reuse canvas instead of creating new one every time
+    if (!canvasRef.current) {
+      canvasRef.current = document.createElement('canvas');
+    }
+    const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
     
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    ctx.drawImage(img, 0, 0);
+    // Only redraw if canvas size changed
+    if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+    }
     
     const imageData = ctx.getImageData(pixelX, pixelY, 1, 1);
     const r = imageData.data[0];
     const g = imageData.data[1];
     const b = imageData.data[2];
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-  };
+  }, []);
 
-  const handleImageMouseMove = (event: React.MouseEvent<HTMLImageElement>) => {
+  const handleImageMouseMove = useCallback((event: React.MouseEvent<HTMLImageElement>) => {
+    // Throttle mousemove events to 60fps max
+    const now = Date.now();
+    if (now - lastMouseMoveTime.current < 16) {
+      return;
+    }
+    lastMouseMoveTime.current = now;
+
     const img = event.currentTarget as HTMLImageElement;
     const rect = img.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -233,7 +242,7 @@ const NewHome = () => {
     if (color) {
       setPreviewColor(color);
     }
-  };
+  }, [getPixelColor]);
 
   const handleImageClick = (event: React.MouseEvent<HTMLImageElement>) => {
     const img = event.currentTarget as HTMLImageElement;
