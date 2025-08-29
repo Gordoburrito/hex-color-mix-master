@@ -3,16 +3,27 @@ import React from "react";
 
 interface ColorMixResult {
   [sumHex: string]: {
-    [colorName: string]: {
-      hex: string;
-      Quantity: number;
-    };
+    [colorName: string]: number;
   };
 }
 
 interface ColorMixProps {
   colorMixResult: ColorMixResult;
 }
+
+// Paint color hex mapping
+const paintColorHexMap: { [key: string]: string } = {
+  "Titanium White": "ffffff",
+  "Hansa Yellow Pale": "ffcc00",
+  "Cadmium Yellow Medium": "ffcc00",
+  "Yellow Ochre": "cc7722",
+  "Cadmium Red Hue": "e32636",
+  "Alizarin Crimson Hue": "e32636",
+  "Phthalo Blue (Green Shade)": "123456",
+  "Phthalo Green (Blue Shade)": "123456",
+  "Burnt Sienna": "8a3324",
+  "Ivory Black": "000000",
+};
 
 const ColorMix: React.FC<ColorMixProps> = ({ colorMixResult }) => {
   if (!colorMixResult) {
@@ -29,19 +40,15 @@ const ColorMix: React.FC<ColorMixProps> = ({ colorMixResult }) => {
                 style={{ backgroundColor: sumHex }}
               ></div>
               <div className="flex gap-2 w-full">
-                {(() => {
-                  const quantities = Object.values(colorMixResult[sumHex]).map(
-                    (color) => color.Quantity
-                  );
-                  const parts = quantities;
-                  return colorMixResult[sumHex] && Object.keys(colorMixResult[sumHex]).map(
-                    (colorName, idx) => {
-                      const { hex, Quantity } = colorMixResult[sumHex][colorName];
-                      return (
-                        <div key={idx} className="color-mix__addend w-40">
-                          <div className="flex flex-col items-center">
-                            <div className="flex justify-center">
-                              {Array.from({ length: parts[idx] }).map(
+                {Object.entries(colorMixResult[sumHex]).map(
+                  ([colorName, quantity], idx) => {
+                    const hex = paintColorHexMap[colorName] || "cccccc";
+                    return (
+                      <div key={idx} className="color-mix__addend w-40">
+                        <div className="flex flex-col items-center">
+                          <div className="flex justify-center items-center gap-2">
+                            <div className="flex">
+                              {Array.from({ length: quantity }).map(
                                 (_, partIndex) => (
                                   <div
                                     key={partIndex}
@@ -51,15 +58,16 @@ const ColorMix: React.FC<ColorMixProps> = ({ colorMixResult }) => {
                                 )
                               )}
                             </div>
-                            <p className="text-center">{colorName}</p>
-                            {/* <p>Hex: {hex}</p> */}
-                            {/* <p>Quantity: {Quantity}</p> */}
+                            <span className="text-sm font-medium text-gray-700 ml-1">
+                              {quantity}
+                            </span>
                           </div>
+                          <p className="text-center">{colorName}</p>
                         </div>
-                      );
-                    }
-                  );
-                })()}
+                      </div>
+                    );
+                  }
+                )}
               </div>
             </div>
           </div>

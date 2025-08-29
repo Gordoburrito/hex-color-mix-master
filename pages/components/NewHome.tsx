@@ -1,37 +1,45 @@
 // src/components/ImageUpload.tsx
 import FileUpload from "./client/FileUpload";
 import ColorPicker from "./client/ColorPicker";
-import PaintColors from "./client/PaintColors";
+import PaintColorsList from "./client/PaintColorsList";
 import ColorMixButton from "./client/ColorMixButton";
 import ColorMixResult from "./client/ColorMixResult";
 import UploadedImage from "./client/UploadedImage";
 import ColorBoxes from "./client/ColorBoxes";
-// src/pages/index.tsx
-import { ChangeEvent, useState } from "react";
-import ImageUpload from "../components/ImageUpload";
+import { useState } from "react";
 import { extractColors } from "../../utils";
-import { ChromePicker, ColorResult } from "react-color";
-import EyeDrop, { EyeDropper } from "react-eyedrop"; // Add this import
+import { ColorResult } from "react-color";
+import { EyeDropper } from "react-eyedrop";
+
+interface PaintColor {
+  name: string;
+  hex: string;
+}
+
+interface ColorWithPosition {
+  hex: string;
+  x: number;
+  y: number;
+}
 
 const NewHome = () => {
-  // TODO: make this an array and style the text as chips
-  const starterPaintColors = `Titanium White
-    Hansa Yellow Pale
-    Cadmium Yellow Medium
-    Yellow Ochre
-    Cadmiu Red Hue
-    Alizarin Crimson Hue
-    Phthalo Blue (Green Shade)
-    Phthalo Green (Blue Shade)
-    Burnt Sienna
-    Ivory Black
-  `;
-  const [colors, setColors] = useState<string[]>([]);
-  const [eyeDropActive, setEyeDropActive] = useState<boolean>(false);
+
+  const starterPaintColors: PaintColor[] = [
+    { name: "Titanium White", hex: "#ffffff" },
+    { name: "Hansa Yellow Pale", hex: "#ffcc00" },
+    { name: "Cadmium Yellow Medium", hex: "#ffcc00" },
+    { name: "Yellow Ochre", hex: "#cc7722" },
+    { name: "Cadmium Red Hue", hex: "#e32636" },
+    { name: "Alizarin Crimson Hue", hex: "#e32636" },
+    { name: "Phthalo Blue (Green Shade)", hex: "#123456" },
+    { name: "Phthalo Green (Blue Shade)", hex: "#123456" },
+    { name: "Burnt Sienna", hex: "#8a3324" },
+    { name: "Ivory Black", hex: "#000000" },
+  ];
+
+  const [colors, setColors] = useState<ColorWithPosition[]>([]); // Start with empty colors array to allow unlimited colors
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [pickerColor, setPickerColor] = useState<string>("#000000");
-  const [paintColors, setPaintColors] = useState<string>(starterPaintColors);
-  const [paintColorHex, setPaintColorHex] = useState<string[]>([]);
+  const [paintColors, setPaintColors] = useState<PaintColor[]>(starterPaintColors);
   const [colorMixResult, setColorMixResult] = useState<any>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -50,9 +58,10 @@ const NewHome = () => {
   const processImage = async (imageFile: File) => {
     try {
       const palette = await extractColors(imageFile);
-      console.log(palette);
-      setColors(palette);
-      console.log(colors);
+      console.log('Extracted palette:', palette);
+      // Instead of auto-adding colors, just log them
+      // Users can click on the image to manually select colors at specific coordinates
+      console.log('Colors extracted from image. Click on the image to select colors at specific locations.');
     } catch (error) {
       console.error("Failed to extract colors:", error);
     }
@@ -61,31 +70,51 @@ const NewHome = () => {
   // ? server
   const onUpload = (imageFile: File) => {
     setImageSrc(URL.createObjectURL(imageFile));
+    setColors([]); // Clear existing colors when new image is uploaded
     processImage(imageFile);
   };
 
   // server
   const requestColorMix = async () => {
-    // Takes (Yellow Ochre, Pthalo Blue, and  hexValues  [#7f7f7f, #7f7f7f, #7f7f7f])
-    // Returns color mixes.
+    // Validation
+    if (colors.length === 0) {
+      alert("Please add some colors first by uploading an image or using the color picker. You can add as many colors as needed.");
+      return;
+    }
+    if (paintColors.length === 0) {
+      alert("Please add some paint colors first.");
+      return;
+    }
+    
+    // Takes paint colors and hex values, returns color mixes.
     setIsLoading(true);
   
     const controller = new AbortController(); // Create an AbortController instance
     const signal = controller.signal; // Get the signal from the AbortController
   
     // Set the custom timeout (in milliseconds)
-    const timeout = 30000; // 60 seconds
+    const timeout = 30000; // 30 seconds
     setTimeout(() => controller.abort(), timeout);
   
     try {
-      const response = await fetch("/api/mixColorsDavinci", {
+      // Convert paint colors array to string format for API
+      const paintColorsString = paintColors.map(color => color.name).join('\n');
+      
+      console.log('Sending to API:', {
+        paintColorsString,
+        colors,
+        paintColorsLength: paintColors.length,
+        colorsLength: colors.length
+      });
+      
+      const response = await fetch("/api/mixColorsChat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          paintColors: paintColors,
-          hexValues: colors,
+          paintColors: paintColorsString,
+          hexValues: colors.map(color => color.hex),
         }),
         signal, // Pass the signal to the fetch request
       });
@@ -123,25 +152,52 @@ const NewHome = () => {
   
   // add api call?
 
-  // client
-  const handleColorChange = (color: ColorResult) => {
-    setPickerColor(color.hex);
-  };
 
   // client
-  const addPickerColor = () => {
-    console.log(colors);
-    setColors((prevColors) => [...prevColors, pickerColor]);
-  };
-
-  // client
-  const handlePaintColorsChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setPaintColors(event.target.value);
+  const handlePaintColorsChange = (colors: PaintColor[]) => {
+    setPaintColors(colors);
   };
 
   const handleEyeDropSelect = (color: ColorResult) => {
-    setColors((prevColors) => [...prevColors, color.hex]);
-    setEyeDropActive(false);
+    // For EyeDropper, we'll add at a default position since we don't have coordinates
+    setColors((prevColors) => [...prevColors, { 
+      hex: color.hex, 
+      x: 20 + (prevColors.length * 40), 
+      y: 20 
+    }]);
+  };
+
+  const handleImageClick = (event: React.MouseEvent<HTMLImageElement>) => {
+    const img = event.currentTarget as HTMLImageElement;
+    const rect = img.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    console.log('Click coordinates:', { x, y, rect });
+    
+    // Create a canvas to get the pixel color
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    ctx.drawImage(img, 0, 0);
+    
+    // Calculate the actual pixel coordinates based on image scaling
+    const scaleX = img.naturalWidth / img.offsetWidth;
+    const scaleY = img.naturalHeight / img.offsetHeight;
+    const pixelX = Math.floor(x * scaleX);
+    const pixelY = Math.floor(y * scaleY);
+    
+    const imageData = ctx.getImageData(pixelX, pixelY, 1, 1);
+    const r = imageData.data[0];
+    const g = imageData.data[1];
+    const b = imageData.data[2];
+    const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    
+    console.log('Adding color:', { hex, x, y });
+    setColors((prevColors) => [...prevColors, { hex, x, y }]);
   };
 
   
@@ -175,19 +231,17 @@ const NewHome = () => {
     <div className="grid grid-cols-2">
       <div>
         {imageSrc == null ? (
-          <h2 className="text-2xl">upload image to generate a pallette</h2>
+          <h2 className="text-2xl">upload image to generate a palette or add colors manually</h2>
         ) : (
-          <UploadedImage imageSrc={imageSrc} />
+          <div className="relative inline-block">
+            <UploadedImage imageSrc={imageSrc} onClick={handleImageClick} />
+            <ColorBoxes colors={colors} onRemoveColor={removeColor} />
+            <div className="absolute top-4 right-4">
+              <EyeDropper customComponent={Button} onChange={handleEyeDropSelect} />
+            </div>
+          </div>
         )}
         <FileUpload onUpload={onUpload} />
-        <div className="flex gap-1">
-          <ColorBoxes colors={colors} onRemoveColor={removeColor} />
-          {/* <EyeDropper
-              src={imageSrc as string}
-              onChange={handleEyeDropSelect}
-            /> */}
-          <EyeDropper customComponent={Button} onChange={handleEyeDropSelect} />
-        </div>
       </div>
       <div className="flex">
         <div>
@@ -196,9 +250,9 @@ const NewHome = () => {
             colorMixResult={colorMixResult}
           />
           <div>
-            <PaintColors
+            <PaintColorsList
               paintColors={paintColors}
-              handlePaintColorsChange={handlePaintColorsChange}
+              onPaintColorsChange={handlePaintColorsChange}
             />
             <ColorMixButton requestColorMix={requestColorMix} />
           </div>

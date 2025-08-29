@@ -1,17 +1,16 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 export default async function (
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<void> {
-  if (!configuration.apiKey) {
+  if (!process.env.OPENAI_API_KEY) {
     res.status(500).json({
       error: {
         message: 'OpenAI API key not configured, please follow instructions in README.md',
@@ -34,20 +33,20 @@ export default async function (
 
   try {
     const prompt = generatePrompt(paintColors, hexValues);
-    const response = await openai.createChatCompletion({
-      model: "gpt-4",
-      temperature: 0,
-      max_tokens: 2048,
-      frequency_penalty: 0,
-      presence_penalty: 0,
-      top_p: 1,
-      messages: [{role: "assistant", content: prompt}]
-    });
-    const jsonResponse = response && response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].message ? JSON.parse(response.data.choices[0].message.content.trim()) : null;
 
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-2024-08-06",
+      temperature: 0,
+      max_tokens: 1024,
+      messages: [{role: "user", content: prompt}],
+      response_format: { type: "json_object" }
+    });
+
+    const jsonResponse = JSON.parse(response.choices[0].message.content);
     res.status(200).json(jsonResponse);
   } catch (error: any) {
     // Consider adjusting the error handling logic for your use case
+    console.error('Full error details:', error);
     if (error.response) {
       console.error(error.response.status, error.response.data);
       res.status(error.response.status).json(error.response.data);
@@ -55,7 +54,7 @@ export default async function (
       console.error(`Error with OpenAI API request: ${error.message}`);
       res.status(500).json({
         error: {
-          message: 'An error occurred during your request.',
+          message: `An error occurred during your request: ${error.message}`,
         },
       });
     }
@@ -74,27 +73,23 @@ function generatePrompt(paintColors: string, hexValues: string[]): string {
   I have the following paint colors: 
   ${paintColorsList}
 
-  I would like to mix these paint colors to create the following hexadecimal colors:
+  I would like to mix these paint colors to create the following hexadecimal colors (any number of colors can be provided):
 
   ${hexValuesList}
 
-  You will need to specify the paint colors and their respective quantities needed to create the color. The quantity should be a number on a scale of 1 - 4 representing the proportion of each color needed to create the final color. Be sure to include the closest hex value for each paint color.
-  Please provide a JSON structure with the hexadecimal color codes as keys and the paint colors with their respective quantities as values. The JSON should be tidy and easy to understand. Use the following example format for your response:
-
-  {
-    "HEX_CODE": {
-      "Paint Color 1": {
-        'hex': 'closest hex value',
-        'Quantity' : quantity,
-      },
-      "Paint Color 2": {
-        'hex': 'closest hex value',
-        'Quantity' : quantity,
-      },
-      ...
-    },
-    ...
-  }
+  You will need to specify the paint colors and their respective quantities needed to create each color. The quantity should be a number on a scale of 1 - 4 representing the proportion of each color needed to create the final color.
   
+  For each hex color provided, analyze and provide the paint colors and their quantities needed to mix that color. Handle any number of colors from 1 to many.
+
+  Please respond with valid JSON only. The format should be:
+  {
+    "#hexcolor1": {
+      "Paint Color Name": quantity,
+      "Another Paint Color": quantity
+    },
+    "#hexcolor2": {
+      "Paint Color Name": quantity
+    }
+  }
   `;
 }

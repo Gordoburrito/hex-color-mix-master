@@ -1,17 +1,16 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 export default async function (
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<void> {
-  if (!configuration.apiKey) {
+  if (!process.env.OPENAI_API_KEY) {
     res.status(500).json({
       error: {
         message: 'OpenAI API key not configured, please follow instructions in README.md',
@@ -34,18 +33,16 @@ export default async function (
 
   try {
     const prompt = generatePrompt(paintColors, hexValues);
-    const response = await openai.createCompletion({
-      model: "text-davinci-002",
-      prompt: prompt,
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
       temperature: 0,
       max_tokens: 2048,
-      n: 1,
-      stop: null,
       top_p: 1,
       presence_penalty: 0,
-      frequency_penalty: 0
+      frequency_penalty: 0,
+      messages: [{role: "user", content: prompt}]
     });
-    const jsonResponse = response && response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].text ? JSON.parse(response.data.choices[0].text.trim()) : null;
+    const jsonResponse = response && response.choices && response.choices[0] && response.choices[0].message ? JSON.parse(response.choices[0].message.content?.trim() || '{}') : null;
 
     res.status(200).json(jsonResponse);
   } catch (error: any) {
