@@ -355,12 +355,12 @@ const NewHome = () => {
           </div>
 
           {/* Bottom panel for results and controls */}
-          <div className={`fixed bottom-4 left-4 right-4 max-h-[50vh] bg-white bg-opacity-95 rounded-lg overflow-y-auto z-40 transition-transform duration-300 ${isPanelVisible ? 'translate-y-0' : 'translate-y-[calc(100%-60px)]'}`}>
+          <div className={`fixed bottom-4 left-4 right-4 max-h-[100vh] bg-white bg-opacity-95 rounded-lg overflow-y-auto z-40 transition-transform duration-300 ${isPanelVisible ? 'translate-y-0' : 'translate-y-[calc(100%-60px)]'}`}>
             {/* Toggle button at top of panel */}
             <div className="flex justify-center border-b border-gray-200 pb-2 mb-4">
               <button
                 onClick={() => setIsPanelVisible(!isPanelVisible)}
-                className="bg-gray-100 hover:bg-gray-200 rounded-lg p-2 transition-all duration-200"
+                className=" w-full h-12"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
