@@ -330,12 +330,6 @@ const NewHome = () => {
                 />
               )}
               
-              {/* Overlay controls */}
-              <div className="absolute top-4 left-4 right-4 z-40 flex justify-between items-start">
-                <div className="bg-white bg-opacity-90 rounded-lg p-4 max-w-xs">
-                  <FileUpload onUpload={onUpload} />
-                </div>
-              </div>
             </div>
 
             {/* Main page content below image */}
@@ -343,6 +337,11 @@ const NewHome = () => {
               {/* Color Mix Button */}
               <div className="flex justify-center">
                 <ColorMixButton requestColorMix={requestColorMix} isLoading={isLoading} />
+              </div>
+              
+              {/* Choose File Button */}
+              <div className="flex justify-center">
+                <FileUpload onUpload={onUpload} />
               </div>
               
               {/* Color Mix Results */}
