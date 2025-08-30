@@ -19,7 +19,7 @@ const ColorBoxes: React.FC<ColorBoxesProps> = ({ colors, onRemoveColor }) => {
       {colors && colors.map((color, index) => {
         return (
           <div
-            className="fixed w-8 h-8 rounded border-2 border-white shadow-lg flex justify-center items-center group pointer-events-auto z-10"
+            className="absolute w-8 h-8 rounded border-2 border-white shadow-lg flex justify-center items-center group pointer-events-auto z-10"
             key={index}
             style={{
               backgroundColor: color.hex,

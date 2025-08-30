@@ -263,17 +263,13 @@ const NewHome = () => {
     const relativeX = event.clientX - rect.left;
     const relativeY = event.clientY - rect.top;
     
-    // Store absolute viewport coordinates for positioning the color boxes
-    const absoluteX = event.clientX;
-    const absoluteY = event.clientY;
-    
-    console.log('Click coordinates:', { relativeX, relativeY, absoluteX, absoluteY, rect });
+    console.log('Click coordinates:', { relativeX, relativeY, rect });
     
     const hex = getPixelColor(img, relativeX, relativeY);
     if (!hex) return;
     
-    console.log('Adding color:', { hex, x: absoluteX, y: absoluteY });
-    setColors((prevColors) => [...prevColors, { hex, x: absoluteX, y: absoluteY }]);
+    console.log('Adding color:', { hex, x: relativeX, y: relativeY });
+    setColors((prevColors) => [...prevColors, { hex, x: relativeX, y: relativeY }]);
   };
 
   
@@ -325,7 +321,7 @@ const NewHome = () => {
               {/* Color preview circle */}
               {previewColor && mousePosition && (
                 <div
-                  className="fixed pointer-events-none z-50 w-16 h-16 rounded-full border-4 border-white shadow-lg"
+                  className="absolute pointer-events-none z-50 w-16 h-16 rounded-full border-4 border-white shadow-lg"
                   style={{
                     backgroundColor: previewColor,
                     left: mousePosition.x + 20,
