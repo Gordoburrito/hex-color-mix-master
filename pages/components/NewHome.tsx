@@ -316,7 +316,7 @@ const NewHome = () => {
                 onClick={handleImageClick} 
                 onMouseMove={handleImageMouseMove}
               />
-              <ColorBoxes colors={colors} onRemoveColor={removeColor} />
+              <ColorBoxes colors={colors} onRemoveColor={removeColor} colorMixResult={colorMixResult} />
               
               {/* Color preview circle */}
               {previewColor && mousePosition && (
