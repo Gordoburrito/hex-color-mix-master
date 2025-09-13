@@ -7,7 +7,6 @@ import UploadedImage from "./client/UploadedImage";
 import ColorBoxes from "./client/ColorBoxes";
 import { useState, useCallback, useRef } from "react";
 import { extractColors } from "../../utils";
-import { EyeDropper } from "react-eyedrop";
 
 interface PaintColor {
   name: string;
@@ -163,15 +162,6 @@ const NewHome = () => {
     setPaintColors(colors);
   };
 
-  const handleEyeDropSelect = (color: { rgb: string; hex: string }) => {
-    // For EyeDropper, we'll add at a default position since we don't have coordinates
-    setColors((prevColors) => [...prevColors, { 
-      hex: color.hex, 
-      x: 20 + (prevColors.length * 40), 
-      y: 20 
-    }]);
-  };
-
   const getPixelColor = useCallback((img: HTMLImageElement, x: number, y: number) => {
     // Calculate actual displayed image dimensions with object-contain
     const imgAspect = img.naturalWidth / img.naturalHeight;
@@ -272,31 +262,64 @@ const NewHome = () => {
     setColors((prevColors) => [...prevColors, { hex, x: relativeX, y: relativeY }]);
   };
 
-  
-  const Button = ({ onClick }) => (
-    <button
-      className="w-8 h-8 rainbow-circle rounded flex border-2 border-white items-center justify-center"
-      onClick={onClick}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="white"
-        className="w-6 h-6"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15 11.25l1.5 1.5.75-.75V8.758l2.276-.61a3 3 0 10-3.675-3.675l-.61 2.277H12l-.75.75 1.5 1.5M15 11.25l-8.47 8.47c-.34.34-.8.53-1.28.53s-.94.19-1.28.53l-.97.97-.75-.75.97-.97c.34-.34.53-.8.53-1.28s.19-.94.53-1.28L12.75 9M15 11.25L12.75 9"
-        />
-      </svg>
-    </button>
-  );
 
   const removeColor = (indexToRemove: number) => {
     setColors(colors.filter((_color, index) => index !== indexToRemove));
+  };
+
+  const takeFullPageScreenshot = async () => {
+    try {
+      // Hide the bottom panel temporarily
+      const bottomPanel = document.querySelector('[class*="fixed bottom-4"]') as HTMLElement;
+      const originalDisplay = bottomPanel?.style.display;
+      if (bottomPanel) {
+        bottomPanel.style.display = 'none';
+      }
+
+      // First scroll to the bottom of the page
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+      });
+      
+      // Wait for scroll to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Use html2canvas to capture the full page
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(document.body, {
+        height: document.body.scrollHeight,
+        width: document.body.scrollWidth,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight
+      });
+      
+      // Restore the bottom panel
+      if (bottomPanel) {
+        bottomPanel.style.display = originalDisplay || '';
+      }
+      
+      // Convert to blob and download
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `color-palette-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      }, 'image/png');
+      
+    } catch (error) {
+      console.error('Screenshot failed:', error);
+      alert('Screenshot failed. Please try again.');
+    }
   };
 
   return (
@@ -342,6 +365,16 @@ const NewHome = () => {
               {/* Choose File Button */}
               <div className="flex justify-center">
                 <FileUpload onUpload={onUpload} />
+              </div>
+
+              {/* Screenshot Button */}
+              <div className="flex justify-center">
+                <button
+                  onClick={takeFullPageScreenshot}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                >
+                  📸 Take Full Page Screenshot
+                </button>
               </div>
               
               {/* Color Mix Results */}

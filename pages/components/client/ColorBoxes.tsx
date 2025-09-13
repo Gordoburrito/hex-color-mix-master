@@ -35,6 +35,7 @@ const ColorBoxes: React.FC<ColorBoxesProps> = ({ colors, onRemoveColor, colorMix
     "Ivory Black": "000000",
   };
 
+
   const getContainerPosition = (baseX: number, baseY: number, index: number, allColors: ColorWithPosition[]) => {
     // Just put it directly to the right of the square
     return {
@@ -62,9 +63,10 @@ const ColorBoxes: React.FC<ColorBoxesProps> = ({ colors, onRemoveColor, colorMix
           <React.Fragment key={index}>
             {/* Main color square */}
             <div
-              className="absolute w-8 h-8 rounded border-2 border-white shadow-lg flex justify-center items-center group pointer-events-auto z-10 cursor-pointer"
+              className="absolute w-8 h-8 rounded border-2 shadow-lg flex justify-center items-center group pointer-events-auto z-10 cursor-pointer"
               style={{
                 backgroundColor: color.hex,
+                borderColor: color.hex.toLowerCase() === '#ffffff' || color.hex.toLowerCase() === 'ffffff' ? '#000000' : '#ffffff',
                 left: color.x - 16,
                 top: color.y - 16,
                 transform: 'translate(0, 0)',
@@ -83,6 +85,7 @@ const ColorBoxes: React.FC<ColorBoxesProps> = ({ colors, onRemoveColor, colorMix
                 </button>
               )}
             </div>
+
 
             {/* Dot-style visualization next to square */}
             {hasMixResult && (() => {
